@@ -18,6 +18,13 @@ import os
 import cv2 as cv
 from random import shuffle
 from tqdm import tqdm
+import pandas as pd
+import sys
+
+np.set_printoptions(threshold=sys.maxsize)
+#torch.set_printoptions(threshold=sys.maxsize)
+
+
 """
 TRAIN_DIR1 = r'\5kImages\train\autistic'
 TRAIN_DIR2 = r'\5kImages\train\non_autistic'
@@ -51,8 +58,43 @@ def displayImage(img):
     # cv.namedWindow("PALASH", cv.WINDOW_NORMAL)
     # cv.resizeWindow("PALASH", 200, 200)
     cv.imshow("PALASH", img)
-    cv.waitKey(10)
+    cv.waitKey(0)
     cv.destroyAllWindows()
+
+def normalizer_ch(image0):
+    ch1 = torch.flatten(image0).float()
+    #print("Ch1",ch1)
+    ch1_mean = torch.mean(ch1)
+    ch1_std = torch.std(ch1)
+    #print("meanStd",ch1_mean,ch1_std)
+    ch1m = (image0 - ch1_mean.expand_as(image0))
+    #print("afterMean", ch1m)
+    ch1ms = torch.div(ch1m, ch1_std.expand_as(ch1m))
+    #print("afterStddiv", ch1ms)
+    #print("restored", ch1)
+    return ch1ms
+
+def normalizer(image):
+    #gen0 = torch.Generator()
+    #gen0 = gen0.manual_seed(0)
+    #image=torch.randint(10,[2,3,4,4],dtype=float,generator=gen0)
+    #print(image.shape)
+    #print(image[0].shape)
+    #newim=image[0].numpy()
+    #displayImage(newim)
+    #print("inputIm:", image[0])
+    image=image.permute(1,0,2,3)
+    #print("inputIm:",image[0])
+    ch1=normalizer_ch(image[0])
+    ch2=normalizer_ch(image[1])
+    ch3=normalizer_ch(image[2])
+    image[0]=ch1
+    image[1]=ch2
+    image[2]=ch3
+    #print(image)
+    image = image.permute(1, 0, 2, 3)
+    print("ok...>")
+    return image
 
 
 def create_data(path1, path2):
@@ -79,14 +121,17 @@ def create_data(path1, path2):
     shuffle(dataList)
    # x = np.array([i[0] for i in dataList]).reshape(-1, IMG_Resolution, IMG_Resolution)
     x = np.array([i[0] for i in dataList])
-    x = torch.from_numpy(x)
+    x = torch.from_numpy(x).float()
     x = x.permute(0,3, 1, 2)
     y = np.array([i[1] for i in dataList])
     y=torch.from_numpy(y)
+    x= normalizer(x)
+    #print("changed",x[0][0])
     return x,y
 
 
 def data_process():
+    print("ok..")
     cwd = os.getcwd()+"/"
     trpath1 = cwd + TRAIN_DIR1  # autistic images
     trpath2 = cwd + TRAIN_DIR2  # regular images
@@ -104,7 +149,8 @@ def data_process():
 
     x_test,y_test=create_data(tstpath1, tstpath2)
     # np.save('test_data.npy', test_data)
-    
+
+    print("ok..")
     return x_train,y_train,x_validation,y_validation,x_test,y_test
 
 
@@ -113,10 +159,10 @@ def data_process():
 
 def main():
     X_train,y_train,X_validation,y_validation,X_test,y_test=data_process()
-    print(X_train.shape)
-    #X_train = torch.from_numpy(X_train)
-    #X_train = X_train.permute(0,3, 1, 2)
-    #print(X_train.shape)
+    print("xtrainprocessed:",X_train)
+    #image=normalizer()
+    #print("returned",image)
+
 
 
 # In[11]:

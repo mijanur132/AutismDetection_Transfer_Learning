@@ -13,7 +13,7 @@ import torchvision
 from torchvision import *
 from torch.utils.data import Dataset, DataLoader
 
-from ipynb.fs.full.autismDataProcess import data_process
+from autismDataProcess import data_process
 import matplotlib.pyplot as plt
 import time
 import copy
@@ -58,6 +58,7 @@ if torch.cuda.is_available():
     print("useCuda")
 
 net = models.resnet50(pretrained=True)
+#net = models.resnet152(pretrained=True)
 net = net.cuda() if device else net
 #net
 
@@ -114,9 +115,10 @@ test_batcher = MiniBatcher(300, n_examples_test)
 
 # In[18]:
 
-
+print("ok....................................>")
 
 optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)  #Read further
+#optimizer=optim.Adam(net.parameters(), lr=learning_rate,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
 val_loss = []
 val_acc = []
 train_loss = []
