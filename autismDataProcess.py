@@ -125,7 +125,7 @@ def create_data(path1, path2):
     x = x.permute(0,3, 1, 2)
     y = np.array([i[1] for i in dataList])
     y=torch.from_numpy(y)
-    x= normalizer(x)
+   # x= normalizer(x)   #this creates lower accuracy
     #print("changed",x[0][0])
     return x,y
 
